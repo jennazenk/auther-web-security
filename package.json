@@ -4,7 +4,7 @@
   "description": "",
   "main": "server/index.js",
   "scripts": {
-    "start": "nodemon --watch server",
+    "start": "./env-init.sh && nodemon --watch server",
     "preinstall": "bower install",
     "seed": "node seed",
     "db-init": "./db-init.sh",

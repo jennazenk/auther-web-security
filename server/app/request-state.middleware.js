@@ -1,4 +1,4 @@
-'use strict'; 
+'use strict';
 
 var router = require('express').Router();
 var session = require('express-session');
@@ -19,7 +19,7 @@ router.use(function (req, res, next) {
 });
 
 router.use(session({
-  secret: 'tongiscool',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false
 }));
