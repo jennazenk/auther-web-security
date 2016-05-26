@@ -5,12 +5,19 @@ var router = require('express').Router();
 var HttpError = require('../utils/HttpError');
 var User = require('../api/users/user.model');
 
+var crypto = require('crypto');
+
 router.post('/login', function (req, res, next) {
+  if(!req.body.password) next(HttpError(401))
+
   User.findOne({
-    where: req.body
+    where: {
+        email: req.body.email
+    }
   })
   .then(function (user) {
-    if (!user) throw HttpError(401);
+    var hashedPassword = crypto.pbkdf2Sync(req.body.password, user.salt, 100000, 100, 'sha512');
+    if (!user && user.password !== hashedPassword) throw HttpError(401);
     req.login(user, function (err) {
       if (err) next(err);
       else res.json(user);
