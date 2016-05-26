@@ -37,3 +37,4 @@ bower_components
 .idea
 
 secrets.json
+key.pem
