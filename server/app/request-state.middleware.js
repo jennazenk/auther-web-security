@@ -1,23 +1,15 @@
 'use strict'; 
 
 var router = require('express').Router();
+var bodyParser = require('body-parser');
 var session = require('express-session');
 var passport = require('passport');
 
 var User = require('../api/users/user.model');
 var secrets = require('../../secrets');
 
-router.use(function (req, res, next) {
-  var bodyString = '';
-  req.on('data', function (chunk) {
-    bodyString += chunk;
-  });
-  req.on('end', function () {
-    bodyString = bodyString || '{}';
-    req.body = eval('(' + bodyString + ')');
-    next();
-  });
-});
+router.use(bodyParser.json());
+router.use(bodyParser.urlencoded({extended: true}));
 
 router.use(session({
   secret: secrets.session,

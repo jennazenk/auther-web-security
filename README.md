@@ -93,3 +93,23 @@ router.post('/', Auth.assertAdmin, function (req, res, next) {
 ```
 
 Additionally, for cases where certain fields are not settable, we `delete` them from `req.body`.
+
+---
+
+# Injection
+
+In this round of the workshop, attackers attempt to execute arbitrary JavaScript code on the server, and defenders protect against such code execution. See OWASP's [article on injection](https://www.owasp.org/index.php/Top_10_2013-A1-Injection) for more. Below are "solutions" for attack and defense scenarios.
+
+## Attack
+
+In the command line:
+
+```bash
+curl TARGET_IP_ADDRESS_HERE:8080 --request POST --data 'console.log("whoops")' --header 'Content-Type: application/json'
+```
+
+## Defend
+
+This vulnerability ultimately extends from using `eval` to parse incoming body strings into a `body` object. A simple solution would be to replace `eval` with `JSON.parse`.
+
+The solution here, though, replaces our custom body parsing with that of the `body-parser` library. Though not strictly necessary *simply* to avoid the injection, this approach has the advantage of abstracting out the body parsing logic altogether, thus making our application more modular and robust in general.
