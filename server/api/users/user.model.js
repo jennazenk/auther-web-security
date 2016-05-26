@@ -35,8 +35,8 @@ var User = db.define('user', {
 }, {
   hooks : {
     beforeValidate : function(user) {
-      user.salt = crypto.randomBytes(8);
-      user.password = crypto.pbkdf2Sync(user.password, user.salt, 100000, 100, 'sha512');
+      user.salt = crypto.randomBytes(8).toString('base64');
+      user.password = crypto.pbkdf2Sync(user.password, user.salt, 100000, 100, 'sha512').toString('base64');
     }
   }
 
