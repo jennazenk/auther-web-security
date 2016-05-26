@@ -13,6 +13,9 @@ router.post('/login', function (req, res, next) {
   User.findOne({
     where: {
         email: req.body.email
+    },
+    attributes: {
+        include: ['password', 'salt']
     }
   })
   .then(function (user) {

@@ -18,9 +18,7 @@ router.param('id', function (req, res, next, id) {
 });
 
 router.get('/', Auth.assertAuthenticated, function (req, res, next) {
-  User.findAll({
-      attributes: {exclude: ['password', 'salt', 'googleId', 'githubId', 'twitterId']}
-  })
+  User.findAll({})
   .then(function (users) {
     res.json(users);
   })
