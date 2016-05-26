@@ -11,7 +11,10 @@ app.config(function ($stateProvider) {
         return story.fetch();
       },
       users: function (User) {
-        return User.fetchAll();
+        return User.fetchAll()
+        .catch(function () {
+          return [];
+        });
       }
     }
   });

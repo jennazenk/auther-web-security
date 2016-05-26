@@ -5,6 +5,7 @@ var router = require('express').Router();
 var HttpError = require('../../utils/HttpError');
 var User = require('./user.model');
 var Story = require('../stories/story.model');
+var Auth = require('../../utils/auth.middleware');
 
 router.param('id', function (req, res, next, id) {
   User.findById(id)
@@ -16,28 +17,20 @@ router.param('id', function (req, res, next, id) {
   .catch(next);
 });
 
-router.get('/', function (req, res, next) {
-    if(!req.user)  {
-      res.sendStatus(401);
-    } else {   
-      User.findAll({})
-      .then(function (users) {
-        res.json(users);
-      })
-      .catch(next);
-    }
+router.get('/', Auth.assertAuthenticated, function (req, res, next) {
+  User.findAll({})
+  .then(function (users) {
+    res.json(users);
+  })
+  .catch(next);
 });
 
-router.post('/', function (req, res, next) {
-    if(!req.user || !req.user.isAdmin) {
-      res.sendStatus(401);
-    } else {
-      User.create(req.body)
-      .then(function (user) {
-        res.status(201).json(user);
-      })
-      .catch(next);
-    }
+router.post('/', Auth.assertAdmin, function (req, res, next) {
+  User.create(req.body)
+  .then(function (user) {
+    res.status(201).json(user);
+  })
+  .catch(next);
 });
 
 router.get('/:id', function (req, res, next) {
@@ -48,28 +41,21 @@ router.get('/:id', function (req, res, next) {
   .catch(next);
 });
 
-router.put('/:id', function (req, res, next) {
-    if(!req.user || (!req.user.isAdmin &&req.user.id !== req.requestedUser.id)) {
-      res.sendStatus(401);
-    } else { 
-      req.requestedUser.update(req.body)
-      .then(function (user) {
-        res.json(user);
-      })
-      .catch(next);
-    }
+router.put('/:id', Auth.assertAdminOrSelf, function (req, res, next) {
+  if (Auth.isSelf(req)) delete req.body.isAdmin;
+  req.requestedUser.update(req.body)
+  .then(function (user) {
+    res.json(user);
+  })
+  .catch(next);
 });
 
-router.delete('/:id', function (req, res, next) {
-    if(!req.user || (!req.user.isAdmin &&req.user.id !== req.requestedUser.id)) {
-      res.sendStatus(401);
-    } else { 
-      req.requestedUser.destroy()
-      .then(function () {
-        res.status(204).end();
-      })
-      .catch(next);
-    }
+router.delete('/:id', Auth.assertAdminOrSelf, function (req, res, next) {
+  req.requestedUser.destroy()
+  .then(function () {
+    res.status(204).end();
+  })
+  .catch(next);
 });
 
 module.exports = router;

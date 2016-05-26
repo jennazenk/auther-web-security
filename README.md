@@ -44,3 +44,52 @@ With something like:
 router.use('/bower_components', express.static(bowerPath));
 router.use('/browser', express.static(browserPath));
 ```
+
+---
+
+# Improper Access
+
+In this round of the workshop, attackers attempt to find a hole in the access control of the defenders' application. See OWASP's [article on missing access control](https://www.owasp.org/index.php/Top_10_2013-A7-Missing_Function_Level_Access_Control) for more. Below are "solutions" for attack and defense scenarios.
+
+## Attack
+
+The table below details every available API action, and also outlines which types of agents (guest, user, or admin) should be able to perform those actions. A successful attack would demonstrate either that access control is missing or overly restrictive.
+
+|ACTION                 |guest |user |admin |
+|-----------------------|------|-----|------|
+|get one story          |o     |o    |o     |
+|get all stories        |o     |o    |o     |
+|get one user           |o     |o    |o     |
+|get all users          |x     |o    |o     |
+|create own story       |x     |o    |o     |
+|update own story       |x     |o    |o     |
+|delete own story       |x     |o    |o     |
+|change story's author  |x     |x    |o     |
+|create other's story   |x     |x    |o     |
+|update other's story   |x     |x    |o     |
+|delete other's story   |x     |x    |o     |
+|create a user          |x     |x    |o     |
+|update self            |x     |o    |o     |
+|update other           |x     |x    |o     |
+|delete self            |x     |o    |o     |
+|delete other           |x     |x    |o     |
+|set other's privileges |x     |x    |o     |
+|set own privileges     |x     |x    |x     |
+
+## Defense
+
+The solution provided in this repo involves "gatekeeper" middleware. For example, `Auth.assertAdmin` is a middleware that will invoke `next()` if the requesting user is an admin, but otherwise will pass along a 403 (Forbidden) error.
+
+We use this middleware to protect certain routes. For example, the following ensures that only admins can create users:
+
+```
+router.post('/', Auth.assertAdmin, function (req, res, next) {
+  User.create(req.body)
+  .then(function (user) {
+    res.status(201).json(user);
+  })
+  .then(null, next);
+});
+```
+
+Additionally, for cases where certain fields are not settable, we `delete` them from `req.body`.
