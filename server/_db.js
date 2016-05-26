@@ -2,9 +2,9 @@
 
 var Sequelize = require('sequelize');
 
-var databaseURI = process.env.DB_URI;
+var secrets = require('../secrets');
 
-var db = new Sequelize(databaseURI, {
+var db = new Sequelize(secrets.databaseURI, {
   define: {
     timestamps: false,
     underscored: true

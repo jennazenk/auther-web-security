@@ -1,10 +1,11 @@
-'use strict';
+'use strict'; 
 
 var router = require('express').Router();
 var session = require('express-session');
 var passport = require('passport');
 
 var User = require('../api/users/user.model');
+var secrets = require('../../secrets');
 
 router.use(function (req, res, next) {
   var bodyString = '';
@@ -19,7 +20,7 @@ router.use(function (req, res, next) {
 });
 
 router.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: secrets.session,
   resave: false,
   saveUninitialized: false
 }));
