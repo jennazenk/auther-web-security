@@ -113,3 +113,39 @@ curl TARGET_IP_ADDRESS_HERE:8080 --request POST --data 'console.log("whoops")' -
 This vulnerability ultimately extends from using `eval` to parse incoming body strings into a `body` object. A simple solution would be to replace `eval` with `JSON.parse`.
 
 The solution here, though, replaces our custom body parsing with that of the `body-parser` library. Though not strictly necessary *simply* to avoid the injection, this approach has the advantage of abstracting out the body parsing logic altogether, thus making our application more modular and robust in general.
+
+---
+
+# Cross-site Scripting
+
+In this round of the workshop, attackers attempt to execute arbitrary JavaScript code on *other clients*, and defenders protect against such code execution. See OWASP's [article on cross-site scripting](https://www.owasp.org/index.php/Top_10_2013-A3-Cross-Site_Scripting_(XSS)) for more. Below are "solutions" for attack and defense scenarios.
+
+## Attack
+
+Go to the website and head to the signup page. Enter your email as `<script>alert('whoops');</script>` and choose any password. If the attack succeeds, any client viewing that user's page, or all users, should receive that alert.
+
+You can acheive a similar result for a story's title or body, though with slightly more trouble. Login or signup as some user and then create a story. Visit that story's state. Now open the console and do something like:
+
+```js
+var story = angular.element('[contenteditable]').scope().story;
+story.paragraphs.push('<script>alert("oopsy");</script>');
+story.save();
+```
+
+Again, if the attack succeeds, any client viewing that story should receive that alert.
+
+For a reflected XSS attack, form a url like:
+
+```
+http://TARGET_IP_ADDRESS:8080/notavliadroute?x=%3Cscript%3Ealert%28%27dang,%20this%20is%20not%20good%27%29;%3C/script%3E
+```
+
+Anybody who visits that url using a browser that does not protect against reflected XSS (e.g. Firefox) should see that alert pop up.
+
+## Defense
+
+There are two vulnerabilities.
+
+One stems from our `contenteditable` directive and its overly enthusiastic rendering of arbitrary html. One way to solve this is to "sanitize" our contenteditable stuff using `ngSanitize`. Go through installing it and setting it up (refer [here](https://docs.angularjs.org/api/ngSanitize) for more guidance). Now inject `$sanitize` into our `contenteditable` directive and then use it to sanitize whatever we throw into `element.html()`.
+
+The other vulnerabiliy comes from the server sending parts of the request in error responses. Sometimes less is more—in this solution, we omit *any and all* response data in our error response html.
