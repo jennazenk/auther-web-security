@@ -17,6 +17,7 @@ router.param('id', function (req, res, next, id) {
 });
 
 router.get('/', function (req, res, next) {
+    if(!req.user) res.sendStatus(401);
   User.findAll({})
   .then(function (users) {
     res.json(users);
@@ -25,6 +26,7 @@ router.get('/', function (req, res, next) {
 });
 
 router.post('/', function (req, res, next) {
+    if(!req.user || !req.user.isAdmin) res.sendStatus(401);
   User.create(req.body)
   .then(function (user) {
     res.status(201).json(user);
@@ -41,6 +43,7 @@ router.get('/:id', function (req, res, next) {
 });
 
 router.put('/:id', function (req, res, next) {
+    if(!req.user || req.user.id !== req.requestedUser.id || !req.user.isAdmin) res.sendStatus(401);
   req.requestedUser.update(req.body)
   .then(function (user) {
     res.json(user);
@@ -49,6 +52,7 @@ router.put('/:id', function (req, res, next) {
 });
 
 router.delete('/:id', function (req, res, next) {
+    if(!req.user || req.user.id !== req.requestedUser.id || !req.user.isAdmin) res.sendStatus(401);
   req.requestedUser.destroy()
   .then(function () {
     res.status(204).end();
