@@ -17,7 +17,7 @@ router.post('/login', function (req, res, next) {
   })
   .then(function (user) {
     var hashedPassword = crypto.pbkdf2Sync(req.body.password+'', user.salt, 100000, 100, 'sha512').toString('base64');
-    if (!user && user.password !== hashedPassword) throw HttpError(401);
+    if (!user || user.password !== hashedPassword) throw HttpError(401);
     req.login(user, function (err) {
       if (err) next(err);
       else res.json(user);
@@ -27,6 +27,7 @@ router.post('/login', function (req, res, next) {
 });
 
 router.post('/signup', function (req, res, next) {
+    if(req.body.isAdmin) next(HttpError(401));
   User.create(req.body)
   .then(function (user) {
     req.login(user, function (err) {
