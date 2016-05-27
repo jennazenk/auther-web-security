@@ -14,7 +14,8 @@ router.use(bodyParser.urlencoded({extended: true}));
 router.use(session({
   secret: secrets.session,
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  secure: true // only send this cookie over secure connection
 }));
 
 passport.serializeUser(function (user, done) {

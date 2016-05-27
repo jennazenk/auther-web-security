@@ -5,22 +5,19 @@ var router = require('express').Router();
 var HttpError = require('../utils/HttpError');
 var User = require('../api/users/user.model');
 
-var crypto = require('crypto');
-
 router.post('/login', function (req, res, next) {
-  if(!req.body.password) next(HttpError(401))
-
   User.findOne({
     where: {
-        email: req.body.email
+      email: req.body.email+''
     },
     attributes: {
-        include: ['password', 'salt']
+      include: ['password', 'salt']
     }
   })
   .then(function (user) {
-    var hashedPassword = crypto.pbkdf2Sync(req.body.password+'', user.salt, 100000, 100, 'sha512').toString('base64');
-    if (!user || user.password !== hashedPassword) throw HttpError(401);
+    if (!user || !user.authenticate(req.body.password)) {
+      throw HttpError(401);
+    }
     req.login(user, function (err) {
       if (err) next(err);
       else res.json(user);
@@ -30,7 +27,7 @@ router.post('/login', function (req, res, next) {
 });
 
 router.post('/signup', function (req, res, next) {
-    if(req.body.isAdmin) next(HttpError(401));
+  delete req.body.isAdmin;
   User.create(req.body)
   .then(function (user) {
     req.login(user, function (err) {
